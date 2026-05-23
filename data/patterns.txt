@@ -1,0 +1,33 @@
+# Base de patrones de letras para la red de Hopfield.
+# Cada patrón comienza con un nombre precedido por '#:' (ej. '#: J').
+# Los caracteres '*' representan +1 y '.' representan -1.
+# Las líneas en blanco son ignoradas.
+# El cargador detectará automáticamente el tamaño de las matrices (ancho y alto).
+
+#: J
+* * * * *
+. . . * .
+. . . * .
+* . . * .
+* * * . .
+
+#: A
+. * * * .
+* . . . *
+* * * * *
+* . . . *
+* . . . *
+
+#: C
+. * * * *
+* . . . .
+* . . . .
+* . . . .
+. * * * *
+
+#: P
+* * * * .
+* . . . *
+* * * * .
+* . . . .
+* . . . .
