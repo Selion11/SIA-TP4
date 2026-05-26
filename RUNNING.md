@@ -32,6 +32,7 @@ El proyecto está diseñado para desacoplar completamente la definición visual 
 ## 📖 Guía Explicativa: Conceptos Clave
 
 ### 1. Actualización Asincrónica (Neurona por Neurona)
+
 A diferencia de la actualización sincrónica (donde todas las neuronas calculan su nuevo estado al mismo tiempo), la **actualización asincrónica** selecciona **una sola neurona** en cada paso, calcula su activación ponderada, y actualiza su estado de inmediato en el vector global.
 
 La regla de actualización para la neurona $i$ es:
@@ -40,21 +41,26 @@ $$s_i(t+1) = \text{sign}\left( \sum_{j=1}^N W_{ij} s_j(t) \right)$$
 En esta implementación, para evitar sesgos secuenciales, en cada **época** de evolución barajamos de forma aleatoria el orden de evaluación de las $N$ neuronas (índices $\{1, \dots, N\}$).
 
 ### 2. Criterio de Convergencia
+
 La red evoluciona de forma asincrónica hasta que se alcanza un **punto estable (punto fijo)**. El criterio de parada implementado determina que la red ha convergido si **se realiza una época completa (se evalúan las $N$ neuronas) y no se produce ningún cambio de signo en ninguna de ellas**.
 
 ### 3. El Truco de la Matriz de Pesos $W$
+
 Para evitar un bucle anidado por cada patrón, entrenamos la red de manera puramente matricial:
+
 1.  Creamos la matriz $K$ de dimensión $N \times P$ (donde $P$ es la cantidad de patrones y cada columna es un patrón).
 2.  Calculamos los pesos iniciales como:
     $$W = \frac{1}{N} K K^T$$
 3.  Establecemos la diagonal de la matriz a cero (`np.fill_diagonal(W, 0)`) para impedir la auto-retroalimentación de las neuronas, asegurando que la energía decaiga estrictamente.
 
 ### 4. Función de Energía de Lyapunov
+
 Cada estado del sistema tiene asociada una energía calculada como:
 $$E = -\frac{1}{2} S^T W S$$
 A medida que la red evoluciona asíncronamente corrigiendo el ruido, la energía **decae monótonamente** (o se mantiene constante), nunca aumenta. Esto demuestra matemáticamente que la red converge a un mínimo local.
 
 ### 5. Estados Espúreos (Falsas Memorias)
+
 La red tiene mínimos locales adicionales creados por la combinación matemática de las memorias cargadas. Al ingresar estados aleatorios o con excesivo ruido (superior al 50%), la red suele caer en estos **estados espúreos** en lugar de recuperar las letras originales. El programa interactivo cuenta con una opción específica para detectar y analizar estos estados.
 
 ---
@@ -80,3 +86,36 @@ La arquitectura es **100% genérica**. Si deseas utilizar matrices más grandes 
     ```
 3.  ¡Y listo! Al iniciar `python3 main.py`, la aplicación detectará el nuevo tamaño ($10 \times 10$), creará la red con $N = 100$ neuronas, calculará la nueva matriz de pesos $W$ de $100 \times 100$, y renderizará la grilla de alta fidelidad automáticamente de forma perfecta.
 
+---
+
+## Ejercicio 1.2 - Modelo de Oja (Primera Componente Principal)
+
+Se agrego un script independiente para resolver el ejercicio 1.2 usando el dataset `data/europe.csv`:
+
+- Script: `oja/oja.py`
+- Entrada: `data/europe.csv`
+- Salidas generadas en: `oja/outputs/`
+
+### Dependencias
+
+Si no estan instaladas, instalar:
+
+```bash
+pip install numpy pandas matplotlib scikit-learn
+```
+
+### Ejecucion
+
+Desde la raiz del proyecto:
+
+```bash
+python3 oja/oja.py
+```
+
+### Archivos de salida
+
+Al ejecutar se generan:
+
+- `oja/outputs/oja_pc1_loadings.csv` (pesos/cargas por variable)
+- `oja/outputs/oja_country_scores.csv` (proyeccion de paises sobre PC1)
+- `oja/outputs/oja_pc1_analysis.png` (graficos de pesos y proyecciones)
