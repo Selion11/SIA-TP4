@@ -1,0 +1,7 @@
+Escenario,Dimensiones,Radio (Sigma),Learning Rate,Iteraciones,Neuronas Muertas,Error Cuantización (QE),Error Topológico (TE)
+Base,6x6,1.0,0.5,2000,11,0.1718,0.0
+Grilla_Chica,4x4,1.0,0.5,2000,0,0.6013,0.1786
+Grilla_Grande,8x8,1.2,0.5,2000,36,0.0534,0.0
+Bajo_Aprendizaje,6x6,0.5,0.1,2000,10,0.1538,0.8571
+Muchas_Epocas,6x6,1.0,0.5,8000,10,0.0967,0.0714
+Pocas_Epocas,6x6,1.0,0.5,200,13,0.5084,0.1429
