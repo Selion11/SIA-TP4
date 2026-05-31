@@ -23,7 +23,6 @@ num_paises = len(data_scaled)
 # ==========================================
 # 2. Configuración Fija y Grid Search de LR
 # ==========================================
-# Fijamos las dimensiones óptimas que elegiste para clustering real
 ROWS, COLS = 4, 4 
 SIGMA_FIJO = 1.0
 ITERACIONES_FIJAS = 2000
@@ -37,7 +36,7 @@ modelos_entrenados = {}
 print(f"Iniciando Grid Search sobre {len(learning_rates)} tasas de aprendizaje distintas (Grilla {ROWS}x{ROWS})...\n")
 
 # ==========================================
-# 3. Bucle de Evaluación Automatizada
+# 3. Bucle de Evaluación Automatizada y Guardado de Gráficos
 # ==========================================
 for lr in learning_rates:
     lr_round = round(lr, 1)
@@ -69,11 +68,47 @@ for lr in learning_rates:
     
     modelos_entrenados[nombre_escenario] = (som, hit_map)
 
+    # --- NUEVO: Generación y guardado del gráfico para CADA Learning Rate ---
+    fig = plt.figure(figsize=(18, 5.5))
+    fig.suptitle(f"Evaluación SOM | Grilla: {ROWS}x{COLS} | Sigma: {SIGMA_FIJO} | Learning Rate (LR): {lr_round} | Iteraciones: {ITERACIONES_FIJAS}", fontsize=14, fontweight='bold')
+
+    # 1. Mapa de Países
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax1.set_title("1. Mapa de Países")
+    ax1.pcolor(np.zeros((ROWS, COLS)), cmap='Greys', edgecolors='k', alpha=0) 
+    for i, x in enumerate(data_scaled):
+        w = som.winner(x)
+        ax1.text(w[0] + 0.5 + np.random.uniform(-0.2, 0.2), w[1] + 0.5 + np.random.uniform(-0.2, 0.2), 
+                 countries[i], ha='center', va='center', fontsize=8, bbox=dict(facecolor='white', alpha=0.6, lw=0))
+    ax1.set_xlim([0, ROWS]); ax1.set_ylim([0, COLS])
+    ax1.grid(True, linestyle=':', alpha=0.6)
+
+    # 2. Matriz U
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax2.set_title("2. Matriz U (Distancias)")
+    cax = ax2.pcolor(som.distance_map().T, cmap='viridis', edgecolors='k') 
+    fig.colorbar(cax, ax=ax2)
+
+    # 3. Hits
+    ax3 = fig.add_subplot(1, 3, 3)
+    ax3.set_title("3. Elementos por Neurona")
+    cax3 = ax3.pcolor(hit_map.T, cmap='Blues', edgecolors='k')
+    fig.colorbar(cax3, ax=ax3)
+    for i in range(ROWS):
+        for j in range(COLS):
+            if hit_map[i, j] > 0:
+                ax3.text(i + 0.5, j + 0.5, str(int(hit_map[i, j])), ha='center', va='center', color='red', fontweight='bold')
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(f"Comparativa_LR_{lr_round}.png", dpi=300)
+    plt.close(fig)
+    print(f" -> Guardado: Comparativa_LR_{lr_round}.png")
+
 # ==========================================
 # 4. Cuadro Comparativo en Consola
 # ==========================================
 df_comparativo = pd.DataFrame(resultados)
-print("="*85)
+print("\n" + "="*85)
 print("                    RESULTADOS DE LA EVALUACIÓN DE LEARNING RATES")
 print("="*85)
 print(df_comparativo.to_string(index=False))
@@ -82,7 +117,6 @@ print("="*85 + "\n")
 # ==========================================
 # 5. Selección Automatizada del LR Óptimo
 # ==========================================
-# Tu criterio: Primero menor cantidad de neuronas muertas. Desempate por menor QE.
 ganador_df = df_comparativo.sort_values(by=["Neuronas Muertas", "Error Cuantización (QE)"]).iloc[0]
 mejor_escenario_nombre = ganador_df["Escenario"]
 lr_optimo = ganador_df["Learning Rate"]
@@ -105,12 +139,11 @@ print(f" Error Topológico (TE):      {ganador_df['Error Topológico (TE)']}")
 print("="*50 + "\n")
 
 # ==========================================
-# 6. Gráfico Final del Modelo Óptimo Elegido
+# 6. Gráfico Final del Modelo Óptimo Elegido (Duplicado con nombre final)
 # ==========================================
 som_opt, hit_map_opt = modelos_entrenados[mejor_escenario_nombre]
 fig_opt = plt.figure(figsize=(18, 5))
 
-# 1. Mapa de Países Óptimo
 ax1_opt = fig_opt.add_subplot(1, 3, 1)
 ax1_opt.set_title(f"1. Mapa de Países (Óptimo con LR = {lr_optimo})")
 ax1_opt.pcolor(np.zeros((ROWS, COLS)), cmap='Greys', edgecolors='k', alpha=0) 
@@ -121,13 +154,11 @@ for i, x in enumerate(data_scaled):
 ax1_opt.set_xlim([0, ROWS]); ax1_opt.set_ylim([0, COLS])
 ax1_opt.grid(True, linestyle=':', alpha=0.6)
 
-# 2. Matriz U Óptima
 ax2_opt = fig_opt.add_subplot(1, 3, 2)
 ax2_opt.set_title(f"2. Matriz U (Modelo Óptimo LR = {lr_optimo})")
 cax_opt = ax2_opt.pcolor(som_opt.distance_map().T, cmap='viridis', edgecolors='k') 
 fig_opt.colorbar(cax_opt, ax=ax2_opt)
 
-# 3. Hits Óptimos
 ax3_opt = fig_opt.add_subplot(1, 3, 3)
 ax3_opt.set_title("3. Elementos por Neurona (Modelo Óptimo)")
 cax3_opt = ax3_opt.pcolor(hit_map_opt.T, cmap='Blues', edgecolors='k')
