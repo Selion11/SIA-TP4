@@ -9,7 +9,7 @@ import os
 # 1. Carga y Preparación de Datos
 # ==========================================
 try:
-    df = pd.read_csv('../data/europe.csv') # Asegúrate de que la ruta sea correcta
+    df = pd.read_csv('../data/europe.csv')
 except FileNotFoundError:
     print("Error: Por favor asegura que 'europe.csv' esté en la ruta correcta.")
     exit()
