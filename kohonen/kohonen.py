@@ -68,11 +68,10 @@ for lr in learning_rates:
     
     modelos_entrenados[nombre_escenario] = (som, hit_map)
 
-    # --- NUEVO: Generación y guardado del gráfico para CADA Learning Rate ---
+    # Generación y guardado del gráfico para CADA Learning Rate
     fig = plt.figure(figsize=(18, 5.5))
     fig.suptitle(f"Evaluación SOM | Grilla: {ROWS}x{COLS} | Sigma: {SIGMA_FIJO} | Learning Rate (LR): {lr_round} | Iteraciones: {ITERACIONES_FIJAS}", fontsize=14, fontweight='bold')
 
-    # 1. Mapa de Países
     ax1 = fig.add_subplot(1, 3, 1)
     ax1.set_title("1. Mapa de Países")
     ax1.pcolor(np.zeros((ROWS, COLS)), cmap='Greys', edgecolors='k', alpha=0) 
@@ -83,13 +82,11 @@ for lr in learning_rates:
     ax1.set_xlim([0, ROWS]); ax1.set_ylim([0, COLS])
     ax1.grid(True, linestyle=':', alpha=0.6)
 
-    # 2. Matriz U
     ax2 = fig.add_subplot(1, 3, 2)
     ax2.set_title("2. Matriz U (Distancias)")
     cax = ax2.pcolor(som.distance_map().T, cmap='viridis', edgecolors='k') 
     fig.colorbar(cax, ax=ax2)
 
-    # 3. Hits
     ax3 = fig.add_subplot(1, 3, 3)
     ax3.set_title("3. Elementos por Neurona")
     cax3 = ax3.pcolor(hit_map.T, cmap='Blues', edgecolors='k')
@@ -102,7 +99,6 @@ for lr in learning_rates:
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(f"Comparativa_LR_{lr_round}.png", dpi=300)
     plt.close(fig)
-    print(f" -> Guardado: Comparativa_LR_{lr_round}.png")
 
 # ==========================================
 # 4. Cuadro Comparativo en Consola
@@ -139,7 +135,7 @@ print(f" Error Topológico (TE):      {ganador_df['Error Topológico (TE)']}")
 print("="*50 + "\n")
 
 # ==========================================
-# 6. Gráfico Final del Modelo Óptimo Elegido (Duplicado con nombre final)
+# 6. Gráfico Final del Modelo Óptimo Elegido
 # ==========================================
 som_opt, hit_map_opt = modelos_entrenados[mejor_escenario_nombre]
 fig_opt = plt.figure(figsize=(18, 5))
@@ -171,3 +167,43 @@ for i in range(ROWS):
 plt.tight_layout()
 plt.savefig("Kohonen_Network_Results.png", dpi=300)
 print(f" -> Gráfico definitivo guardado como: 'Kohonen_Network_Results.png' usando LR={lr_optimo}")
+
+# ==========================================
+# 7. NUEVO: Gráfico de Tendencias para la Slide 7 (Barrido de LR)
+# ==========================================
+# Ordenamos por LR para que la línea del gráfico tenga sentido secuencial
+df_ordenado_lr = df_comparativo.sort_values(by="Learning Rate")
+
+fig_s7, ax_qe = plt.subplots(figsize=(10, 5))
+fig_s7.suptitle("Slide 7: Impacto del Learning Rate en la Red SOM (Grilla 4x4)", fontsize=14, fontweight='bold')
+
+# Eje Y Izquierdo: Errores (QE y TE)
+line1 = ax_qe.plot(df_ordenado_lr["Learning Rate"], df_ordenado_lr["Error Cuantización (QE)"], 
+                   color="blue", marker="o", linewidth=2, label="Error Cuantización (QE)")
+line2 = ax_qe.plot(df_ordenado_lr["Learning Rate"], df_ordenado_lr["Error Topológico (TE)"], 
+                   color="green", marker="s", linestyle="--", linewidth=1.5, label="Error Topológico (TE)")
+ax_qe.set_xlabel("Learning Rate Inicial", fontsize=11)
+ax_qe.set_ylabel("Escala de Errores", color="blue", fontsize=11)
+ax_qe.tick_params(axis='y', labelcolor="blue")
+ax_qe.grid(True, linestyle=":", alpha=0.6)
+
+# Eje Y Derecho: Neuronas Muertas
+ax_muertas = ax_qe.twinx()
+line3 = ax_muertas.plot(df_ordenado_lr["Learning Rate"], df_ordenado_lr["Neuronas Muertas"], 
+                       color="red", marker="x", linestyle="-.", linewidth=2, label="Neuronas Muertas")
+ax_muertas.set_ylabel("Cantidad de Neuronas Muertas", color="red", fontsize=11)
+ax_muertas.tick_params(axis='y', labelcolor="red")
+
+# Resaltar el óptimo de 0.9 con una línea vertical
+ax_qe.axvline(x=lr_optimo, color="purple", linestyle=":", linewidth=2, alpha=0.8)
+ax_qe.text(lr_optimo - 0.02, ax_qe.get_ylim()[0] + (ax_qe.get_ylim()[1]-ax_qe.get_ylim()[0])*0.1, 
+          f"Óptimo Seleccionado\n(LR = {lr_optimo})", color="purple", fontweight="bold", ha="right", fontsize=9)
+
+# Unificar las leyendas en un solo cuadro
+lines = line1 + line2 + line3
+labels = [l.get_label() for l in lines]
+ax_qe.legend(lines, labels, loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3, frameon=True)
+
+plt.tight_layout()
+plt.savefig("grafico_slide_7.png", dpi=300, bbox_inches='tight')
+print(" -> Gráfico para la presentación guardado como: 'grafico_slide_7.png'")
