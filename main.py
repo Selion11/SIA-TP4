@@ -397,7 +397,34 @@ def menu_spurious(network, patterns, shape):
 
 def main():
     # Cargar patrones dinámicamente
-    patterns_file = os.path.join(os.path.dirname(__file__), "data", "patterns.txt")
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
+    patterns_file = os.path.join(data_dir, "patterns.txt")
+    
+    # Si hay múltiples archivos de patrones, permitir elegir
+    try:
+        txt_files = sorted([f for f in os.listdir(data_dir) if f.endswith(".txt")])
+        if len(txt_files) > 1:
+            print_header()
+            print(f"\n{BOLD}Se detectaron múltiples archivos de patrones en 'data/':{RESET}")
+            for idx, f_name in enumerate(txt_files):
+                try:
+                    temp_p, temp_s = load_patterns(os.path.join(data_dir, f_name))
+                    info = f"({temp_s[0]}x{temp_s[1]}, {len(temp_p)} patrones: {', '.join(temp_p.keys())})"
+                except Exception:
+                    info = "(Error al cargar)"
+                print(f"  {idx+1}. {f_name} {TEXT_DIM}{info}{RESET}")
+            
+            try:
+                sel = input(f"\nSeleccione el archivo a cargar (1-{len(txt_files)}) [default: 1]: ").strip()
+                if sel:
+                    sel_idx = int(sel) - 1
+                    if 0 <= sel_idx < len(txt_files):
+                        patterns_file = os.path.join(data_dir, txt_files[sel_idx])
+            except ValueError:
+                pass
+    except Exception:
+        pass
+
     try:
         patterns, shape = load_patterns(patterns_file)
         N = shape[0] * shape[1]
