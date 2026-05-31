@@ -112,22 +112,32 @@ print(df_comparativo.to_string(index=False))
 print("="*85 + "\n")
 
 # ==========================================
-# 5. Selección e Impresión del Óptimo Matemático
+# 5. Selección e Impresión de Hiperparámetros Óptimos
 # ==========================================
-ganador_df = df_comparativo.sort_values(by="Neuronas Muertas").iloc[0]
+# Ordenamos por menor cantidad de neuronas muertas. Si hay empate, desempata el menor QE.
+ganador_df = df_comparativo.sort_values(by=["Neuronas Muertas", "Error Cuantización (QE)"]).iloc[0]
 mejor_escenario_nombre = ganador_df["Escenario"]
+
+# Cálculo explícito de las épocas en base a las iteraciones y cantidad de datos
+epocas_optimas = round(ganador_df["Iteraciones"] / num_paises, 1)
 
 print("="*50)
 print("         HIPERPARAMETROS OPTIMOS DETECTADOS")
 print("="*50)
-print(f" Escenario Ganador:      {mejor_escenario_nombre}")
-print(f" Tamaño de la Grilla:    {ganador_df['Dimensiones']}")
-print(f" Error de Cuantización:  {ganador_df['Error Cuantización (QE)']}")
-print(f" Error Topológico:       {ganador_df['Error Topológico (TE)']}")
-print(f" Neuronas Muertas:       {ganador_df['Neuronas Muertas']}")
+print(f" Escenario Ganador:          {mejor_escenario_nombre}")
+print(f" Tamaño de la Grilla:        {ganador_df['Dimensiones']}")
+print(f" Radio Inicial (Sigma):      {ganador_df['Radio (Sigma)']}")
+print(f" Tasa de Aprendizaje (LR):   {ganador_df['Learning Rate']}")
+print(f" Iteraciones Totales:        {ganador_df['Iteraciones']}")
+print(f" Épocas Equivalentes:        {epocas_optimas}")
+print("-"*50)
+print(" METRICAS DE LA CORRIDA OPTIMA:")
+print(f" Neuronas Muertas:           {ganador_df['Neuronas Muertas']}")
+print(f" Error de Cuantización (QE): {ganador_df['Error Cuantización (QE)']}")
+print(f" Error Topológico (TE):      {ganador_df['Error Topológico (TE)']}")
 print("="*50 + "\n")
 
-# Re-generar el gráfico ganador con el nombre final solicitado
+# Re-generar el gráfico ganador con el nombre final solicitado usando el modelo real de esa corrida
 som_opt, r_opt, c_opt, hit_map_opt = modelos_entrenados[mejor_escenario_nombre]
 fig_opt = plt.figure(figsize=(18, 5))
 
